@@ -1,8 +1,7 @@
 import os, socket
 from io import BytesIO
-from datetime import datetime
-from flask import Flask, render_template, request, send_file, url_for
-from PIL import Image, ImageDraw, ImageFont, Image
+from flask import Flask, render_template, request, send_file
+from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import qrcode
 
@@ -39,7 +38,7 @@ def detect_boxes(base_img):
     def neighbors(y, x):
         for dy in (-1,0,1):
             for dx in (-1,0,1):
-                if dy==0 and dx==0: 
+                if dy==0 and dx==0:
                     continue
                 ny, nx = y+dy, x+dx
                 if 0 <= ny < h and 0 <= nx < w:
@@ -81,11 +80,12 @@ def detect_boxes(base_img):
             (156, 558, 434, 669), # course
             (456, 558, 732, 669), # date
         ]
+    # Force 4-tuples
+    upper_regions = [(r[0], r[1], r[2], r[3]) for r in upper_regions]
     upper_regions = sorted(upper_regions, key=lambda r: (r[1], r[0]))
     return upper_regions
 
 def text_bbox_size(draw, text, font):
-    # Pillow compatibility shim
     try:
         l, t, r, b = draw.textbbox((0,0), text, font=font)
         return (r - l, b - t)
@@ -98,21 +98,21 @@ def fit_text_in_box(draw, text, box, max_size=64, min_size=18, padding=18):
     box_h = max(1, y2 - y1 - padding*2)
 
     lo, hi = min_size, max_size
-    best_font = get_font(min_size)
+    best = get_font(min_size)
     while lo <= hi:
         mid = (lo + hi) // 2
         f = get_font(mid)
         tw, th = text_bbox_size(draw, text, f)
         if tw <= box_w and th <= box_h:
-            best_font = f
+            best = f
             lo = mid + 1
         else:
             hi = mid - 1
 
-    tw, th = text_bbox_size(draw, text, best_font)
+    tw, th = text_bbox_size(draw, text, best)
     tx = x1 + (x2 - x1 - tw)//2
     ty = y1 + (y2 - y1 - th)//2
-    return best_font, (tx, ty)
+    return best, (tx, ty)
 
 @app.route("/", methods=["GET"])
 def form():
@@ -121,18 +121,16 @@ def form():
 @app.route("/generate", methods=["POST"])
 def generate():
     try:
-        name = request.form.get("name","").strip()
-        bib = request.form.get("bib","").strip()
-        course = request.form.get("course","").strip()
-        date = request.form.get("date","").strip()
+        name = (request.form.get("name") or "").strip() or "-"
+        bib = (request.form.get("bib") or "").strip() or "-"
+        course = (request.form.get("course") or "").strip() or "-"
+        date = (request.form.get("date") or "").strip() or "-"
 
         base = Image.open(BASE_IMG_PATH).convert("RGBA")
         draw = ImageDraw.Draw(base)
         boxes = detect_boxes(base)
 
         for text, box in zip([name, bib, course, date], boxes):
-            if not text:
-                text = "-"  # avoid empty -> metric errors on some fonts
             font, pos = fit_text_in_box(draw, text, box)
             sx, sy = pos
             draw.text((sx+1, sy+1), text, font=font, fill=(0,0,0,90))
@@ -144,26 +142,27 @@ def generate():
         filename = f"o2run_cert_{(bib or 'preview').replace(' ', '_')}.png"
         return send_file(buf, mimetype="image/png", as_attachment=True, download_name=filename)
     except Exception as e:
-        # Return the error message so the user can share it with the developer
         return (f"Generation error: {type(e).__name__}: {e}", 500)
 
 def get_local_ip():
-    # robust way to get LAN IP
     try:
+        import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
         s.close()
         return ip
     except Exception:
-        return socket.gethostbyname(socket.gethostname())
+        return "127.0.0.1"
 
 @app.route("/qr")
 def qr():
-    # Build a URL that phones on the same Wi‑Fi can reach
-    ip = get_local_ip()
-    form_url = f"http://{ip}:5000/"
-    img = qrcode.make(form_url)
+    link = (request.args.get("link") or "").strip()
+    if not link:
+        ip = get_local_ip()
+        port = int(os.environ.get("PORT", "5000"))
+        link = f"http://{ip}:{port}/"
+    img = qrcode.make(link)
     out = BytesIO()
     img.save(out, format="PNG")
     out.seek(0)
