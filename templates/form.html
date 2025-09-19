@@ -5,46 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>O2RUN 완주증 생성</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif; background:#f4f7fb; margin:0; padding:2rem; }
-      .card { max-width:760px; margin:0 auto; background:white; border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
-      h1 { margin:0 0 1rem; font-size:1.6rem; }
-      form { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-      label { font-size:.9rem; color:#4b5563; display:block; margin-bottom:6px; }
-      input { width:100%; padding:14px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:1rem; }
-      input:focus { outline:none; border-color:#60a5fa; box-shadow:0 0 0 4px rgba(96,165,250,.15); }
-      .row-2 { grid-column: span 2; }
-      .actions { display:flex; gap:12px; margin-top:8px; }
-      button { background:#10b981; color:white; border:none; padding:14px 18px; border-radius:12px; font-weight:600; cursor:pointer; }
-      button.secondary { background:#374151; }
-      .hint { color:#6b7280; font-size:.9rem; margin-top:8px; }
-      .qr { margin-top:16px; }
+      :root{
+        --bg:#f6f9fc;
+        --card:#ffffff;
+        --ink:#0f172a;
+        --muted:#6b7280;
+        --primary:#10b981;
+        --primary-d:#0ea371;
+        --ring: rgba(16,185,129,.25);
+        --border:#e5e7eb;
+      }
+      *{box-sizing:border-box}
+      body{
+        background: radial-gradient(1200px 600px at 20% -10%, #e6f7f1 0%, rgba(230,247,241,0) 70%), var(--bg);
+        margin:0; padding:2rem;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+        color: var(--ink);
+      }
+      .card{
+        max-width:760px; margin:0 auto;
+        background: var(--card);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 10px 35px rgba(2,6,23,.06);
+        border:1px solid rgba(226,232,240,.6);
+      }
+      .head{ display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+      .logo{
+        width:36px; height:36px; border-radius:10px;
+        background: linear-gradient(145deg, #0dd4a5, #10b981);
+        display:inline-flex; align-items:center; justify-content:center;
+        color:white; font-weight:800; letter-spacing:.5px;
+      }
+      h1{ font-size:1.4rem; margin:0; }
+      p.desc{ color:var(--muted); margin:6px 0 16px; font-size:.95rem; }
+
+      form{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+      .row-2{ grid-column: span 2; }
+
+      .field{ position:relative; }
+      .field input{
+        width:100%;
+        padding: 22px 14px 14px;
+        border-radius: 14px;
+        border:1.2px solid var(--border);
+        background: var(--card);
+        font-size:1.02rem;
+        transition: border-color .2s, box-shadow .2s, background .2s;
+      }
+      .field input::placeholder{ color:transparent; }
+      .field label{
+        position:absolute; left:12px; top:50%; transform: translateY(-50%);
+        color:#94a3b8; font-size:1rem;
+        padding: 0 6px; background: var(--card);
+        pointer-events:none; transition: all .18s ease;
+      }
+      .field input:focus{
+        outline:none; border-color: var(--primary);
+        box-shadow: 0 0 0 5px var(--ring);
+      }
+      .field input:focus + label,
+      .field input:not(:placeholder-shown) + label{
+        top: 8px; font-size:.78rem; color:#2563eb;
+      }
+
+      .actions{ display:flex; gap:12px; align-items:center; margin-top:4px; }
+      button.primary{
+        background: var(--primary);
+        color:white; border:none;
+        padding: 14px 18px;
+        border-radius: 14px;
+        font-weight:700; letter-spacing:.2px;
+        cursor:pointer;
+        transition: transform .06s ease, background .2s ease, box-shadow .2s;
+        box-shadow: 0 8px 20px rgba(16,185,129,.18);
+      }
+      button.primary:hover{ background: var(--primary-d); }
+      button.primary:active{ transform: translateY(1px); }
+
+      .hint{ color:#64748b; font-size:.9rem; margin-top:10px; }
+      .samples{ color:#94a3b8; font-size:.86rem; margin-top:4px; }
+
+      @media (max-width: 640px){
+        body{ padding:1.2rem; }
+        form{ grid-template-columns:1fr; }
+        .row-2{ grid-column: span 1; }
+      }
     </style>
   </head>
   <body>
     <div class="card">
-      <h1>O2RUN 완주증 자동 생성</h1>
-      <form action="/generate" method="post">
+      <div class="head">
+        <div class="logo">O₂</div>
         <div>
-          <label>이름 / Name</label>
-          <input name="name" placeholder="예: 홍길동" required>
+          <h1>O2RUN 완주증 자동 생성</h1>
+          <p class="desc">이름, 배번, 코스, 일자를 입력하면 즉시 PNG로 내려받아요.</p>
         </div>
-        <div>
-          <label>배번 / Bib</label>
-          <input name="bib" placeholder="예: 123" required>
+      </div>
+
+      <form action="/generate" method="post" autocomplete="on" novalidate>
+        <div class="field">
+          <input id="name" name="name" placeholder=" " required>
+          <label for="name">이름 / Name</label>
         </div>
-        <div>
-          <label>코스 / Course</label>
-          <input name="course" placeholder="예: 3.22km" required>
+        <div class="field">
+          <input id="bib" name="bib" placeholder=" " required inputmode="numeric" pattern="[0-9A-Za-z- ]+">
+          <label for="bib">배번 / Bib</label>
         </div>
-        <div>
-          <label>일자 / Date</label>
-          <input name="date" placeholder="예: 2025.10.18" required>
+
+        <div class="field">
+          <input id="course" name="course" placeholder=" " required>
+          <label for="course">코스 / Course</label>
         </div>
+        <div class="field">
+          <input id="date" name="date" placeholder=" " required>
+          <label for="date">일자 / Date</label>
+        </div>
+
         <div class="row-2 actions">
-          <button type="submit">완주증 PNG 다운로드</button>
-          <a href="/qr" class="qr"><button type="button" class="secondary">QR 보기</button></a>
+          <button class="primary" type="submit">완주증 PNG 다운로드</button>
         </div>
       </form>
+
+      <div class="hint">⚠︎ 한글이 네모로 보이면 <code>static/fonts/</code> 폴더에 <b>NotoSansKR-Regular.ttf</b> 같은 한글 폰트를 넣어주세요.</div>
+      <div class="samples">예시: 이름 – 홍길동 · 배번 – 123 · 코스 – 3.22km · 일자 – 2025.10.18</div>
     </div>
   </body>
 </html>

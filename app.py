@@ -80,7 +80,6 @@ def detect_boxes(base_img):
             (156, 558, 434, 669), # course
             (456, 558, 732, 669), # date
         ]
-    # Force 4-tuples
     upper_regions = [(r[0], r[1], r[2], r[3]) for r in upper_regions]
     upper_regions = sorted(upper_regions, key=lambda r: (r[1], r[0]))
     return upper_regions
@@ -146,7 +145,6 @@ def generate():
 
 def get_local_ip():
     try:
-        import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
