@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>O2RUN 완주증 생성</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif; background:#f4f7fb; margin:0; padding:2rem; }
+      .card { max-width:760px; margin:0 auto; background:white; border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
+      h1 { margin:0 0 1rem; font-size:1.6rem; }
+      form { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+      label { font-size:.9rem; color:#4b5563; display:block; margin-bottom:6px; }
+      input { width:100%; padding:14px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:1rem; }
+      input:focus { outline:none; border-color:#60a5fa; box-shadow:0 0 0 4px rgba(96,165,250,.15); }
+      .row-2 { grid-column: span 2; }
+      .actions { display:flex; gap:12px; margin-top:8px; }
+      button { background:#10b981; color:white; border:none; padding:14px 18px; border-radius:12px; font-weight:600; cursor:pointer; }
+      button.secondary { background:#374151; }
+      .hint { color:#6b7280; font-size:.9rem; margin-top:8px; }
+      .qr { margin-top:16px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>O2RUN 완주증 자동 생성</h1>
+      <form action="/generate" method="post">
+        <div>
+          <label>이름 / Name</label>
+          <input name="name" placeholder="예: 홍길동" required>
+        </div>
+        <div>
+          <label>배번 / Bib</label>
+          <input name="bib" placeholder="예: 123" required>
+        </div>
+        <div>
+          <label>코스 / Course</label>
+          <input name="course" placeholder="예: 3.22km" required>
+        </div>
+        <div>
+          <label>일자 / Date</label>
+          <input name="date" placeholder="예: 2025.10.18" required>
+        </div>
+        <div class="row-2 actions">
+          <button type="submit">완주증 PNG 다운로드</button>
+          <a href="/qr" class="qr"><button type="button" class="secondary">폼으로 가는 QR 보기</button></a>
+        </div>
+      </form>
+      <div class="hint">⚠️ 한글이 네모로 보이면 <code>static/fonts/</code> 폴더에 <b>NotoSansKR-Regular.ttf</b> 같은 한글 폰트를 넣어주세요.</div>
+    </div>
+  </body>
+</html>
