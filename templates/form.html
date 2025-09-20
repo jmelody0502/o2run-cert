@@ -20,10 +20,12 @@
       .card{ max-width:760px; margin:0 auto; background:var(--card);
              border-radius:20px; padding:28px; box-shadow:0 10px 35px rgba(2,6,23,.06);
              border:1px solid rgba(226,232,240,.6); }
-      .head{display:flex; align-items:center; gap:14px; margin-bottom:10px;}
-      .logo{ width:36px; height:36px; border-radius:10px; background:linear-gradient(145deg,#0dd4a5,#10b981);
-             display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; letter-spacing:.5px; }
-      h1{font-size:1.35rem; margin:0;}
+
+      /* 헤더 정렬 */
+      .head{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+      .brand{width:48px; height:48px; object-fit:contain; display:block;}
+      .title-wrap{display:flex; flex-direction:column; justify-content:center;}
+      h1{font-size:1.35rem; line-height:1.1; margin:0;}
       p.desc{color:var(--muted); margin:6px 0 16px; font-size:.95rem;}
 
       form{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
@@ -65,7 +67,9 @@
         color:#94a3b8; pointer-events:none; font-size:1rem;
       }
 
-      /* 자동완성 색 통일(크롬) */
+      .error{ color:#dc2626; font-size:.86rem; margin-top:6px; }
+
+      /* 인쇄/자동완성 */
       input:-webkit-autofill{
         -webkit-box-shadow:0 0 0 1000px var(--input-bg) inset !important;
         -webkit-text-fill-color:var(--ink) !important;
@@ -86,20 +90,21 @@
 
       @media (max-width:640px){
         body{padding:1.2rem;} form{grid-template-columns:1fr;} .row-2{grid-column:span 1;}
+        .brand{width:42px; height:42px;}
       }
     </style>
   </head>
   <body>
     <div class="card">
       <div class="head">
-        <div class="logo">O₂</div>
-        <div>
+        <!-- 로고 이미지로 교체 -->
+        <img src="{{ url_for('static', filename='o2run-logo.png') }}" alt="O2RUN" class="brand" />
+        <div class="title-wrap">
           <h1>O2RUN 완주증 생성</h1>
-          <p class="desc">이름, 배번, <b>코스 선택</b>만 하면 즉시 PNG로 내려받아요.</p>
         </div>
       </div>
 
-      <form action="/generate" method="post" autocomplete="on" novalidate>
+      <form id="certForm" action="/generate" method="post" autocomplete="on" novalidate>
         <div class="field">
           <input id="name" name="name" placeholder=" " required />
           <label for="name">이름 / Name</label>
@@ -116,13 +121,32 @@
             <option value="3.22km">3.22km</option>
             <option value="6.50km">6.50km</option>
           </select>
+          {% if err == 'course' %}
+            <div class="error">코스를 선택해 주세요.</div>
+          {% endif %}
+          <div id="courseErr" class="error" style="display:none;">코스를 선택해 주세요.</div>
         </div>
 
         <div class="row-2 actions">
           <button class="primary" type="submit">완주증 PNG 다운로드</button>
         </div>
       </form>
-      <div class="samples">예시: 이름 – 홍길동 · 배번 – 123 · 코스 – (선택)</div>
     </div>
+
+    <script>
+      // 코스 미선택 시 제출 방지 + 오류 표시
+      const form = document.getElementById('certForm');
+      const course = document.getElementById('course');
+      const courseErr = document.getElementById('courseErr');
+      form.addEventListener('submit', (e) => {
+        if (!course.value) {
+          e.preventDefault();
+          courseErr.style.display = 'block';
+          course.focus();
+        } else {
+          courseErr.style.display = 'none';
+        }
+      });
+    </script>
   </body>
 </html>
