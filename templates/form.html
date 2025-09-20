@@ -84,11 +84,24 @@
       }
 
       /* 버튼 */
-      .actions{display:flex; gap:12px; align-items:center; margin-top:4px;}
-      button.primary{
-        background:var(--primary); color:#fff; border:none;
-        padding:14px 18px; border-radius:14px; font-weight:700; letter-spacing:.2px;
-        cursor:pointer; transition:transform .06s, background .2s, box-shadow .2s;
+     .actions{
+        display:flex;
+        gap:12px;
+        align-items:center;
+        justify-content:center; /* ➜ 가운데 정렬 */
+        margin-top:8px;
+      }  
+     button.primary{
+        background:var(--primary);
+        color:#fff;
+        border:none;
+        padding:16px 22px;       /* ➜ 살짝 키움 */
+        border-radius:14px;
+        font-weight:700;
+        font-size:1.08rem;       /* ➜ 글자 조금 더 크게 */
+        letter-spacing:.2px;
+        cursor:pointer;
+        transition:transform .06s, background .2s, box-shadow .2s;
         box-shadow:0 8px 20px rgba(16,185,129,.18);
       }
       button.primary:hover{background:var(--primary-d);}
@@ -139,7 +152,7 @@
         </div>
 
         <div class="row-2 actions">
-          <button class="primary" type="submit">완주증 PNG 다운로드</button>
+          <button class="primary" type="submit">완주증 다운로드</button>
         </div>
       </form>
     </div>
