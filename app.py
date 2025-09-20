@@ -122,12 +122,19 @@ def generate():
     try:
         name = (request.form.get("name") or "").strip() or "-"
         bib = (request.form.get("bib") or "").strip() or "-"
-        course = (request.form.get("course") or "").strip() or "-"
-        date = (request.form.get("date") or "").strip() or "-"
+
+        # 코스는 셀렉트에서만 오도록 제한
+        allowed_courses = {"3.22km", "6.50km"}
+        course = (request.form.get("course") or "3.22km").strip()
+        if course not in allowed_courses:
+            course = "3.22km"
+
+        # 날짜는 고정
+        date = "2025.10.18"
 
         base = Image.open(BASE_IMG_PATH).convert("RGBA")
         draw = ImageDraw.Draw(base)
-        boxes = detect_boxes(base)
+        boxes = detect_boxes(base)  # [이름, 배번, 코스, 날짜] 순서에 맞춰 배치
 
         for text, box in zip([name, bib, course, date], boxes):
             font, pos = fit_text_in_box(draw, text, box)
@@ -142,7 +149,6 @@ def generate():
         return send_file(buf, mimetype="image/png", as_attachment=True, download_name=filename)
     except Exception as e:
         return (f"Generation error: {type(e).__name__}: {e}", 500)
-
 def get_local_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
