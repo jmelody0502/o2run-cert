@@ -11,20 +11,29 @@ BASE_IMG_PATH = os.path.join(STATIC_DIR, "base.png")
 
 app = Flask(__name__)
 
-def get_font(size: int):
+def _choose_font_path():
     candidates = [
         os.path.join(STATIC_DIR, "fonts", "NotoSansKR-Regular.ttf"),
         os.path.join(STATIC_DIR, "fonts", "Pretendard-Regular.ttf"),
         os.path.join(STATIC_DIR, "fonts", "NanumGothic.ttf"),
         os.path.join(STATIC_DIR, "fonts", "NanumSquare.ttf"),
         os.path.join(STATIC_DIR, "fonts", "NotoSansCJKkr-Regular.otf"),
-        "DejaVuSans.ttf"
+        "DejaVuSans.ttf",
     ]
     for p in candidates:
         try:
-            return ImageFont.truetype(p, size=size)
+            # 파일 존재/로드 가능 여부 확인
+            ImageFont.truetype(p, size=24)
+            return p
         except Exception:
             continue
+    return None
+
+FONT_PATH = _choose_font_path()
+
+def get_font(size: int):
+    if FONT_PATH:
+        return ImageFont.truetype(FONT_PATH, size=size)
     return ImageFont.load_default()
 
 def detect_boxes(base_img):
@@ -123,23 +132,20 @@ def generate():
         name = (request.form.get("name") or "").strip() or "-"
         bib = (request.form.get("bib") or "").strip() or "-"
 
-        # 코스는 셀렉트에서만 오도록 제한
         allowed_courses = {"3.22km", "6.50km"}
-        course = (request.form.get("course") or "3.22km").strip()
+        course = (request.form.get("course") or "").strip()
         if course not in allowed_courses:
-            course = "3.22km"
+            return ("코스를 선택해 주세요.", 400)
 
-        # 날짜는 고정
-        date = "2025.10.18"
+        date = "2025.10.18"  # 고정
 
         base = Image.open(BASE_IMG_PATH).convert("RGBA")
         draw = ImageDraw.Draw(base)
-        boxes = detect_boxes(base)  # [이름, 배번, 코스, 날짜] 순서에 맞춰 배치
+        boxes = detect_boxes(base)  # [이름, 배번, 코스, 날짜] 순
 
+        # 그림자 제거 → 한 번만 렌더링
         for text, box in zip([name, bib, course, date], boxes):
             font, pos = fit_text_in_box(draw, text, box)
-            sx, sy = pos
-            draw.text((sx+1, sy+1), text, font=font, fill=(0,0,0,90))
             draw.text(pos, text, font=font, fill=(28,41,56,255))
 
         buf = BytesIO()
@@ -149,6 +155,7 @@ def generate():
         return send_file(buf, mimetype="image/png", as_attachment=True, download_name=filename)
     except Exception as e:
         return (f"Generation error: {type(e).__name__}: {e}", 500)
+        
 def get_local_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
