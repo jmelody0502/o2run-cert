@@ -141,16 +141,29 @@ def generate():
 
         base = Image.open(BASE_IMG_PATH).convert("RGBA")
         draw = ImageDraw.Draw(base)
-        boxes = detect_boxes(base)  # [이름, 배번, 코스, 날짜] 순
+        boxes = detect_boxes(base)   # [이름, 배번, 코스, 날짜] 순서
 
-        # 그림자 제거 → 한 번만 렌더링
-        for text, box in zip([name, bib, course, date], boxes):
-            font, pos = fit_text_in_box(draw, text, box)
-            draw.text(pos, text, font=font, fill=(28,41,56,255))
+        # 1) 날짜부터 배치해 '기준 폰트 크기' 얻기
+        font_d, pos_d = fit_text_in_box(draw, date, boxes[3])
+        try:
+            date_size = int(getattr(font_d, "size", 48))  # PIL FreeTypeFont.size 사용
+        except Exception:
+            date_size = 48
 
-        buf = BytesIO()
-        base.save(buf, format="PNG")
-        buf.seek(0)
+        # 필요하면 전역 상한으로 더 줄이고 싶을 때: (원하면 값 조정)
+        GLOBAL_CAP = None  # 예: 44 로 바꾸면 전체가 더 작아짐
+        if GLOBAL_CAP:
+            date_size = min(date_size, GLOBAL_CAP)
+
+        # 2) 이름/배번/코스는 날짜 크기 '이하'로 제한해서 렌더 (그림자 제거)
+        for text, box in zip([name, bib, course], boxes[:3]):
+            font, pos = fit_text_in_box(draw, text, box, max_size=date_size)
+            draw.text(pos, text, font=font, fill=(28, 41, 56, 255))
+
+        # 3) 날짜는 마지막에 동일 폰트로 렌더 (그림자 없음)
+        draw.text(pos_d, date, font=font_d, fill=(28, 41, 56, 255))
+
+        buf = BytesIO(); base.save(buf, format="PNG"); buf.seek(0)
         filename = f"o2run_cert_{(bib or 'preview').replace(' ', '_')}.png"
         return send_file(buf, mimetype="image/png", as_attachment=True, download_name=filename)
     except Exception as e:
