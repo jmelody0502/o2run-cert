@@ -17,23 +17,29 @@
         font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
         color: var(--ink);
       }
-      .card{ max-width:760px; margin:0 auto; background:var(--card);
-             border-radius:20px; padding:28px; box-shadow:0 10px 35px rgba(2,6,23,.06);
-             border:1px solid rgba(226,232,240,.6); }
+      .card{
+        max-width:760px; margin:0 auto; background:var(--card);
+        border-radius:20px; padding:28px;
+        box-shadow:0 10px 35px rgba(2,6,23,.06);
+        border:1px solid rgba(226,232,240,.6);
+      }
 
-      /* 헤더 정렬 */
+      /* 헤더: 로고+제목 정렬 */
       .head{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
       .brand{width:48px; height:48px; object-fit:contain; display:block;}
       .title-wrap{display:flex; flex-direction:column; justify-content:center;}
       h1{font-size:1.35rem; line-height:1.1; margin:0;}
       p.desc{color:var(--muted); margin:6px 0 16px; font-size:.95rem;}
 
+      /* 폼 레이아웃 */
       form{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
       .row-2{grid-column:span 2;}
 
+      /* 텍스트 인풋 (플로팅 라벨) */
       .field{position:relative;}
       .field input{
-        width:100%; padding:22px 14px 14px;
+        width:100%;
+        padding:22px 14px 14px;
         border-radius:14px; border:1.2px solid var(--border);
         background:var(--input-bg); font-size:1.02rem;
         transition:border-color .2s, box-shadow .2s, background .2s; color:var(--ink);
@@ -48,7 +54,7 @@
       .field input:focus + label,
       .field input:not(:placeholder-shown) + label{ top:8px; font-size:.78rem; color:#059669; }
 
-      /* 코스 셀렉트 */
+      /* 셀렉트(코스) */
       .select{ position:relative; }
       .select label{
         position:absolute; left:12px; top:8px;
@@ -67,15 +73,17 @@
         color:#94a3b8; pointer-events:none; font-size:1rem;
       }
 
+      /* 오류 메시지 */
       .error{ color:#dc2626; font-size:.86rem; margin-top:6px; }
 
-      /* 인쇄/자동완성 */
+      /* 자동완성 배경 통일(크롬) */
       input:-webkit-autofill{
         -webkit-box-shadow:0 0 0 1000px var(--input-bg) inset !important;
         -webkit-text-fill-color:var(--ink) !important;
         transition:background-color 5000s ease-in-out 0s;
       }
 
+      /* 버튼 */
       .actions{display:flex; gap:12px; align-items:center; margin-top:4px;}
       button.primary{
         background:var(--primary); color:#fff; border:none;
@@ -83,13 +91,16 @@
         cursor:pointer; transition:transform .06s, background .2s, box-shadow .2s;
         box-shadow:0 8px 20px rgba(16,185,129,.18);
       }
-      button.primary:hover{background:var(--primary-d);} button.primary:active{transform:translateY(1px);}
+      button.primary:hover{background:var(--primary-d);}
+      button.primary:active{transform:translateY(1px);}
 
       .hint{color:#64748b; font-size:.9rem; margin-top:10px;}
       .samples{color:#94a3b8; font-size:.86rem; margin-top:4px;}
 
       @media (max-width:640px){
-        body{padding:1.2rem;} form{grid-template-columns:1fr;} .row-2{grid-column:span 1;}
+        body{padding:1.2rem;}
+        form{grid-template-columns:1fr;}
+        .row-2{grid-column:span 1;}
         .brand{width:42px; height:42px;}
       }
     </style>
@@ -97,10 +108,11 @@
   <body>
     <div class="card">
       <div class="head">
-        <!-- 로고 이미지로 교체 -->
+        <!-- 로고 이미지 -->
         <img src="{{ url_for('static', filename='o2run-logo.png') }}" alt="O2RUN" class="brand" />
         <div class="title-wrap">
           <h1>O2RUN 완주증 생성</h1>
+          <p class="desc">이름, 배번, 코스 선택만 하면 즉시 PNG로 내려받아요. (일자 고정: 2025.10.18)</p>
         </div>
       </div>
 
@@ -131,6 +143,9 @@
           <button class="primary" type="submit">완주증 PNG 다운로드</button>
         </div>
       </form>
+
+      <div class="hint">⚠︎ 한글이 네모로 보이면 <code>static/fonts/</code> 폴더에 <b>NotoSansKR-Regular.ttf</b> 같은 한글 폰트를 넣어주세요.</div>
+      <div class="samples">예시: 이름 – 홍길동 · 배번 – 123 · 코스 – (선택) · (일자 고정 – 2025.10.18)</div>
     </div>
 
     <script>
