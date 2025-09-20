@@ -24,19 +24,18 @@
         border:1px solid rgba(226,232,240,.6);
       }
 
-      /* 헤더: 로고+제목 정렬 */
-      .head{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
-      .brand{width:48px; height:48px; object-fit:contain; display:block;}
+      /* 헤더: 로고+제목 정렬 & 간격 조정 */
+      .head{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+      .brand{width:56px; height:56px; object-fit:contain; display:block;} /* ← 살짝 키움 */
       .title-wrap{display:flex; flex-direction:column; justify-content:center;}
       h1{font-size:1.35rem; line-height:1.1; margin:0;}
       p.desc{color:var(--muted); margin:6px 0 16px; font-size:.95rem;}
 
-      /* 폼 레이아웃 */
       form{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
       .row-2{grid-column:span 2;}
 
       /* 텍스트 인풋 (플로팅 라벨) */
-      .field{position:relative;}
+      .field{position:relative; padding-top:6px;} /* ↑ 라벨이 밖으로 올라갈 공간 */
       .field input{
         width:100%;
         padding:22px 14px 14px;
@@ -50,9 +49,13 @@
         color:#94a3b8; font-size:1rem; padding:0 6px; background:var(--card);
         pointer-events:none; transition:all .18s ease;
       }
+      /* 라벨이 위 테두리를 가리지 않게 입력 박스 '밖'으로 올림 */
       .field input:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 5px var(--ring); }
       .field input:focus + label,
-      .field input:not(:placeholder-shown) + label{ top:8px; font-size:.78rem; color:#059669; }
+      .field input:not(:placeholder-shown) + label{
+        top:-8px;                      /* ← 바깥으로 이동 */
+        font-size:.78rem; color:#059669;
+      }
 
       /* 셀렉트(코스) */
       .select{ position:relative; }
@@ -73,34 +76,21 @@
         color:#94a3b8; pointer-events:none; font-size:1rem;
       }
 
-      /* 오류 메시지 */
       .error{ color:#dc2626; font-size:.86rem; margin-top:6px; }
 
-      /* 자동완성 배경 통일(크롬) */
       input:-webkit-autofill{
         -webkit-box-shadow:0 0 0 1000px var(--input-bg) inset !important;
         -webkit-text-fill-color:var(--ink) !important;
         transition:background-color 5000s ease-in-out 0s;
       }
 
-      /* 버튼 */
-     .actions{
-        display:flex;
-        gap:12px;
-        align-items:center;
-        justify-content:center; /* ➜ 가운데 정렬 */
-        margin-top:8px;
-      }  
-     button.primary{
-        background:var(--primary);
-        color:#fff;
-        border:none;
-        padding:16px 22px;       /* ➜ 살짝 키움 */
-        border-radius:14px;
-        font-weight:700;
-        font-size:1.08rem;       /* ➜ 글자 조금 더 크게 */
-        letter-spacing:.2px;
-        cursor:pointer;
+      .actions{
+        display:flex; gap:12px; align-items:center; justify-content:center; margin-top:8px;
+      }
+      button.primary{
+        background:var(--primary); color:#fff; border:none;
+        padding:16px 22px; border-radius:14px; font-weight:700; font-size:1.08rem;
+        letter-spacing:.2px; cursor:pointer;
         transition:transform .06s, background .2s, box-shadow .2s;
         box-shadow:0 8px 20px rgba(16,185,129,.18);
       }
@@ -114,14 +104,13 @@
         body{padding:1.2rem;}
         form{grid-template-columns:1fr;}
         .row-2{grid-column:span 1;}
-        .brand{width:42px; height:42px;}
+        .brand{width:48px; height:48px;} /* 모바일도 살짝 키운 채 유지 */
       }
     </style>
   </head>
   <body>
     <div class="card">
       <div class="head">
-        <!-- 로고 이미지 -->
         <img src="{{ url_for('static', filename='o2run-logo.png') }}" alt="O2RUN" class="brand" />
         <div class="title-wrap">
           <h1>O2RUN 완주증 생성</h1>
@@ -155,6 +144,8 @@
           <button class="primary" type="submit">완주증 다운로드</button>
         </div>
       </form>
+
+
     </div>
 
     <script>
