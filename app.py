@@ -37,17 +37,26 @@ def get_font(size: int):
     return ImageFont.load_default()
 
 def detect_boxes(base_img):
+    """
+    Returns 4 boxes (x1, y1, x2, y2) for [이름, 배번, 코스, 날짜] in that order.
+    1) 밝은 영역 자동 탐지
+    2) 실패 시 새 베이스(1080x1080) 기준 좌표로 폴백 + 이미지 크기에 맞춰 스케일
+    """
+    import numpy as np
+
     im = base_img.convert("RGB")
     arr = np.array(im)
     h, w, _ = arr.shape
+
+    # --- 1) 자동 탐지 (흰색 입력칸) ---
     gray = np.dot(arr[...,:3], [0.299, 0.587, 0.114])
-    mask = (gray > 245).astype(np.uint8)
+    mask = (gray > 245).astype(np.uint8)  # 충분히 밝은 영역
     visited = np.zeros_like(mask, dtype=bool)
 
     def neighbors(y, x):
         for dy in (-1,0,1):
             for dx in (-1,0,1):
-                if dy==0 and dx==0:
+                if dy==0 and dx==0: 
                     continue
                 ny, nx = y+dy, x+dx
                 if 0 <= ny < h and 0 <= nx < w:
@@ -74,24 +83,31 @@ def detect_boxes(base_img):
                             visited[ny, nx] = True
                             stack.append((ny, nx))
                 area = (maxy-miny+1)*(maxx-minx+1)
-                if count > 500 and area > 20000:
+                # 새 베이스의 입력칸 정도만 남기도록 임계값
+                if count > 800 and area > 30000:
                     regions.append((minx, miny, maxx, maxy, count))
 
+    # 상단 80% 안쪽만, 위→아래→왼→오 순으로
     regions_sorted = sorted(regions, key=lambda r: (r[1], r[0]))
     upper_regions = [r for r in regions_sorted if r[3] < int(h*0.8)]
-    if len(upper_regions) > 4:
-        upper_regions = sorted(upper_regions, key=lambda r: (r[2]-r[0]), reverse=True)[1:]
-        upper_regions = sorted(upper_regions, key=lambda r: (r[1], r[0]))
-    if len(upper_regions) != 4:
-        upper_regions = [
-            (156, 430, 434, 541), # name
-            (458, 430, 734, 541), # bib
-            (156, 558, 434, 669), # course
-            (456, 558, 732, 669), # date
-        ]
-    upper_regions = [(r[0], r[1], r[2], r[3]) for r in upper_regions]
-    upper_regions = sorted(upper_regions, key=lambda r: (r[1], r[0]))
-    return upper_regions
+    if len(upper_regions) == 4:
+        boxes = [(r[0], r[1], r[2], r[3]) for r in upper_regions]
+        boxes = sorted(boxes, key=lambda r: (r[1], r[0]))
+        return boxes
+
+    # --- 2) 폴백: 새 베이스(1080x1080) 기준 좌표 ---
+    # [이름, 배번, 코스, 날짜] 순서
+    BASE_W, BASE_H = 1080, 1080
+    FALLBACK = [
+        (193, 261, 528, 395),  # 이름 / Name
+        (556, 261, 888, 395),  # 배번 / Bib
+        (193, 415, 528, 549),  # 코스 / Course
+        (554, 415, 886, 549),  # 일자 / Date
+    ]
+
+    sx, sy = w / BASE_W, h / BASE_H
+    boxes = [(int(x1*sx), int(y1*sy), int(x2*sx), int(y2*sy)) for (x1,y1,x2,y2) in FALLBACK]
+    return boxes
 
 def text_bbox_size(draw, text, font):
     try:
